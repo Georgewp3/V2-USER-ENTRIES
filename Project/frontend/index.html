@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>User Entries</title>
+  <link rel="stylesheet" href="static/css/style.css" />
+</head>
+<body>
+
+  <!-- 🔒 Admin Login Button (Top Right) -->
+  <div id="adminLoginWrapper">
+    <button id="adminLoginToggle">🔒 Admin Login</button>
+    <div id="adminPrompt">
+      <input type="password" id="adminCode" placeholder="Enter 6-digit code" maxlength="6" />
+      <button id="adminSubmit">Enter</button>
+    </div>
+  </div>
+
+  <!-- 👤 Tab 1: User Entry Page -->
+  <section id="tab1">
+    <h1>User Entries</h1>
+
+    <div class="entry-grid">
+      <!-- STEP 1 -->
+      <div class="step-label">STEP 1</div>
+      <div class="step-action">SELECT USER →</div>
+      <div class="step-input">
+        <select id="userSelect">
+          <option value="">— choose user —</option>
+        </select>
+      </div>
+
+      <!-- PROJECT display -->
+      <div class="project-label">PROJECT</div>
+      <div class="project-name" id="projectName">---</div>
+
+      <!-- STEP 2 -->
+      <div class="step-label">STEP 2</div>
+      <div class="step-action">SELECT TASK →</div>
+      <div class="step-input">
+        <select id="taskSelect">
+          <option value="">— choose task —</option>
+        </select>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="step-label">STEP 3</div>
+      <div class="step-action">TASK STATUS →</div>
+      <div class="step-input">
+        <select id="statusSelect">
+          <option value="">— choose status —</option>
+          <option value="NOT COMPLETED">NOT COMPLETED</option>
+          <option value="COMPLETED">COMPLETED</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="submit-wrapper">
+      <button id="submitEntry">SUBMIT ENTRY</button>
+    </div>
+  </section>
+
+  <!-- 🛠️ Tab 2: Admin Panel (Hidden by Default) -->
+  <section id="tab2" style="display:none;">
+    <h2>Admin Panel — Assign Tasks</h2>
+    <button id="backToUserTab" class="back-button">← Back to User Tab</button>
+    <p class="admin-subtitle">Assign tasks to each user using comma-separated values.</p>
+<div class="admin-controls">
+  <div class="add-user-row">
+    <input type="text" id="newUserName" placeholder="Enter full name" />
+    <input type="text" id="newUserProject" placeholder="Enter project name" />
+    <button id="addUserBtn">➕ Add User</button>
+    <button id="toggleDeleteMode" class="delete-mode-btn">🗑 Delete Users</button>
+  </div>
+
+  <div id="deleteControls" style="display: none; margin-bottom: 1rem;">
+    <button id="confirmDelete" class="confirm-delete-btn">✔ Confirm Delete</button>
+  </div>
+</div>
+
+    <div id="adminTaskContainer"></div>
+  </section>
+
+  <!-- 📋 Tab 3: Data Bank -->
+  <section id="tab3" style="display:none;">
+    <h2>Data Bank — Task Logs</h2>
+    <p class="admin-subtitle">This table contains all task submissions by users.</p>
+      <button id="clearDataBank" class="clear-button">🗑 Clear Data Bank</button>
+<button id="exportCSV" class="export-button">📤 Export to Excel</button>
+
+    <div id="logContainer">
+      <table id="logTable">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Project</th>
+            <th>Task</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- JS -->
+  <script src="static/js/main.js"></script>
+</body>
+</html>

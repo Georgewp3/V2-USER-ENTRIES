@@ -1,0 +1,50 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <!-- Change these values if you like -->
+  <groupId>com.example</groupId>
+  <artifactId>user-entries</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <packaging>war</packaging>
+
+  <properties>
+    <!-- Use Java 17 or adjust to 23 if you prefer -->
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <dependencies>
+    <!-- Servlet API (provided by the container) -->
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+      <version>4.0.1</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <finalName>user-entries</finalName>
+    <plugins>
+      <!-- Compile Java -->
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.10.1</version>
+        <configuration>
+          <release>${maven.compiler.target}</release>
+        </configuration>
+      </plugin>
+      <!-- Package as WAR (defaults are fine) -->
+      <plugin>
+        <artifactId>maven-war-plugin</artifactId>
+        <version>3.3.2</version>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

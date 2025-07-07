@@ -1,0 +1,351 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #aaa;
+}
+
+/* Grid layout */
+.entry-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr; /* 2-column layout by default */
+  gap: 16px;
+  max-width: 1000px;
+  margin: 2rem auto;
+  align-items: center;
+  padding: 0 1rem;
+}
+
+@media (max-width: 600px) {
+  .entry-grid {
+    grid-template-columns: 1fr; /* Stack on small screens */
+  }
+}
+
+
+
+/* Labels */
+.step-label, .project-label {
+  background: #0a1622;
+  color: #ffd600;
+  font-weight: bold;
+  text-align: center;
+  padding: 0.5rem;
+}
+
+.step-action {
+  background: #0a1622;
+  color: #ffd600;
+  font-weight: bold;
+  padding: 0.5rem;
+}
+
+.step-input select {
+  padding: 0.6rem 0.75rem;
+  background: #a8e063;
+  font-weight: bold;
+  border: 1px solid #000;
+  font-size: 1rem;
+  border-radius: 4px;
+}
+
+/* Project output box */
+.project-name {
+  grid-column: 2 / span 2;
+  background: red;
+  color: white;
+  padding: 0.5rem;
+  font-weight: bold;
+  text-align: center;
+  border: 1px solid black;
+  margin-bottom: 10px; /* new */
+}
+
+/* Admin login button - top right */
+#adminLoginWrapper {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 1000;
+}
+
+#adminLoginToggle {
+  background-color: #0a1622;
+  color: #ffd600;
+  border: none;
+  padding: 0.5rem 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+/* Admin code prompt (dropdown-style) */
+#adminPrompt {
+  margin-top: 8px;
+  display: none;
+  background: white;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-shadow: 0 0 6px rgba(0,0,0,0.15);
+}
+
+#adminPrompt input {
+  padding: 0.4rem;
+  width: 120px;
+  font-size: 1rem;
+  margin-right: 5px;
+}
+
+#adminPrompt button {
+  padding: 0.4rem 0.7rem;
+  background: #0a1622;
+  color: #ffd600;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+/* Admin Tab Styling */
+#tab2 {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 1rem;
+  background: #f8f8f8;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+#tab2 h2 {
+  margin-bottom: 0.5rem;
+  color: #0a1622;
+  font-size: 1.8rem;
+}
+
+.admin-subtitle {
+  font-size: 0.95rem;
+  margin-bottom: 1.5rem;
+  color: #666;
+}
+
+/* Each row: user + task input */
+.admin-task-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.admin-task-row label {
+  width: 30%;
+  font-weight: bold;
+  color: #333;
+}
+
+.admin-task-row input {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  font-size: 1rem;
+  border: 1px solid #bbb;
+  border-radius: 4px;
+  background-color: #f0f0f0;
+}
+
+.admin-task-row input:focus {
+  outline: none;
+  border-color: #0a1622;
+  background-color: #fff;
+}
+
+.back-button {
+  margin-bottom: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: #0a1622;
+  color: #ffd600;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+}
+#logContainer {
+  overflow-x: auto;
+  margin-top: 1rem;
+}
+
+#logTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#logTable th,
+#logTable td {
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  text-align: left;
+}
+
+#logTable th {
+  background: #0a1622;
+  color: #ffd600;
+}
+
+/* Center and style the submit button */
+.submit-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+  margin-bottom: 3rem; /* new */
+}
+
+#submitEntry {
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+  font-weight: bold;
+  background-color: #0a1622;
+  color: #ffd600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+#submitEntry:hover {
+  background-color: #142f4e;
+}
+
+h1 {
+  text-align: center;
+  text-transform: uppercase;
+  font-size: 2rem;
+  margin-top: 1.5rem;
+  color: #0a1622;
+}
+.clear-button {
+  margin-bottom: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: #c0392b;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.clear-button:hover {
+  background-color: #a93226;
+}
+
+.export-button {
+  margin-left: 10px;
+  margin-bottom: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: #1a73e8;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.export-button:hover {
+  background-color: #0f5bb5;
+}
+.add-user-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.add-user-row input {
+  flex: 1;
+  padding: 0.5rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.add-user-row button {
+  padding: 0.5rem 1rem;
+  background-color: #27ae60;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.add-user-row button:hover {
+  background-color: #219150;
+}
+.delete-mode-btn {
+  background-color: #c0392b;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  font-weight: bold;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.delete-mode-btn:hover {
+  background-color: #a93226;
+}
+
+.confirm-delete-btn {
+  background-color: #e67e22;
+  color: white;
+  border: none;
+  padding: 0.5rem 1.2rem;
+  font-weight: bold;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.confirm-delete-btn:hover {
+  background-color: #d35400;
+}
+
+.admin-task-checkbox {
+  margin-right: 0.5rem;
+}
+
+.step-input select,
+.step-input input,
+.add-user-row input,
+.add-user-row button,
+.submit-wrapper button {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.add-user-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 600px) {
+  .add-user-row {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 600px) {
+  .add-user-row button,
+  .delete-mode-btn,
+  .confirm-delete-btn,
+  .clear-button,
+  .export-button,
+  #submitEntry {
+    width: 100%;
+  }
+}
+
+h1, h2 {
+  text-align: center;
+  font-size: clamp(1.5rem, 5vw, 2rem);
+}
+
