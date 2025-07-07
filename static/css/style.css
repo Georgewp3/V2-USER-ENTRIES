@@ -62,10 +62,9 @@ body {
 
 /* Admin login button - top right */
 #adminLoginWrapper {
-  position: fixed;
-  top: 10px;
-  right: 10px;
-  z-index: 1000;
+  margin-top: 1rem;
+  text-align: left; /* ← aligns it left under the form */
+  padding-left: 1rem;
 }
 
 #adminLoginToggle {
@@ -80,20 +79,13 @@ body {
 
 /* Admin code prompt (dropdown-style) */
 #adminPrompt {
-  margin-top: 8px;
   display: none;
-  background: white;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  box-shadow: 0 0 6px rgba(0,0,0,0.15);
+  margin-top: 0.5rem;
 }
 
 #adminPrompt input {
-  padding: 0.4rem;
-  width: 120px;
-  font-size: 1rem;
-  margin-right: 5px;
+  padding: 0.3rem;
+  margin-right: 0.5rem;
 }
 
 #adminPrompt button {
