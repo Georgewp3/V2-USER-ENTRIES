@@ -69,8 +69,13 @@ body {
 /* Admin Login block centered and styled */
 #adminLoginWrapper {
   margin-top: 1.5rem;
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1rem;
 }
+
 
 #adminLoginToggle {
   padding: 0.6rem 1.2rem;
