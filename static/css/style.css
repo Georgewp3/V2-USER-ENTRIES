@@ -62,20 +62,26 @@ body {
 
 /* Admin login button - top right */
 #adminLoginWrapper {
-  margin-top: 1rem;
-  text-align: left; /* ← aligns it left under the form */
+  margin-top: 1.5rem;
   padding-left: 1rem;
+  padding-right: 1rem;
+  text-align: left;
 }
 
 #adminLoginToggle {
-  background-color: #0a1622;
-  color: #ffd600;
-  border: none;
   padding: 0.5rem 1rem;
-  font-weight: bold;
-  cursor: pointer;
+  font-size: 1rem;
+  background-color: #34495e;
+  color: white;
+  border: none;
   border-radius: 4px;
+  cursor: pointer;
 }
+
+#adminLoginToggle:hover {
+  background-color: #2c3e50;
+}
+
 
 /* Admin code prompt (dropdown-style) */
 #adminPrompt {
@@ -84,19 +90,44 @@ body {
 }
 
 #adminPrompt input {
-  padding: 0.3rem;
+  padding: 0.4rem;
   margin-right: 0.5rem;
+  width: 150px;
+  max-width: 100%;
 }
 
 #adminPrompt button {
-  padding: 0.4rem 0.7rem;
-  background: #0a1622;
-  color: #ffd600;
+  padding: 0.4rem 0.8rem;
+  background-color: #2980b9;
+  color: white;
   border: none;
-  font-weight: bold;
-  cursor: pointer;
   border-radius: 4px;
+  cursor: pointer;
 }
+
+#adminPrompt button:hover {
+  background-color: #1f6391;
+}
+
+@media (max-width: 600px) {
+  #adminLoginWrapper {
+    text-align: left;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  #adminPrompt {
+    display: block;
+  }
+
+  #adminPrompt input,
+  #adminPrompt button {
+    display: block;
+    margin-top: 0.5rem;
+    width: 100%;
+  }
+}
+
 
 /* Admin Tab Styling */
 #tab2 {
