@@ -31,27 +31,10 @@ async function fetchUsersFromBackend() {
 
 
 const userTasks = {};
-if (!localStorage.getItem("userTasks")) {
-  Object.keys(userProjects).forEach(user => {
-    userTasks[user] = [];
-  });
-  localStorage.setItem("userTasks", JSON.stringify(userTasks));
-}
-
 const taskLogs = [];
 let deleteMode = false;
 const selectedToDelete = new Set();
 
-// --------- LOAD FROM LOCAL STORAGE ---------
-if (localStorage.getItem("userProjects")) {
-  Object.assign(userProjects, JSON.parse(localStorage.getItem("userProjects")));
-}
-if (localStorage.getItem("userTasks")) {
-  Object.assign(userTasks, JSON.parse(localStorage.getItem("userTasks")));
-}
-if (localStorage.getItem("taskLogs")) {
-  taskLogs.push(...JSON.parse(localStorage.getItem("taskLogs")));
-}
 
 // --------- POPULATE USER DROPDOWN ---------
 function refreshUserDropdown() {
@@ -131,19 +114,17 @@ document.getElementById("adminLoginToggle").addEventListener("click", () => {
   prompt.style.display = prompt.style.display === "block" ? "none" : "block";
 });
 
-document.getElementById("adminSubmit").addEventListener("click", () => {
+document.getElementById("adminSubmit").addEventListener("click", async () => {
   const enteredCode = document.getElementById("adminCode").value;
   if (enteredCode === adminCode) {
-    document.getElementById("tab1").style.display = "none";
-    document.getElementById("tab2").style.display = "block";
-    document.getElementById("tab3").style.display = "block";
-    document.getElementById("adminLoginWrapper").style.display = "none";
+  document.getElementById("tab1").style.display = "none";
+  document.getElementById("tab2").style.display = "block";
+  document.getElementById("tab3").style.display = "block";
+  document.getElementById("adminLoginWrapper").style.display = "none";
 
-    fetchUsersFromBackend();
-    fetchTaskLogs();
-  } else {
-    alert("Incorrect code.");
-  }
+  await fetchUsersFromBackend();  // ✅ wait for users to load
+  await fetchTaskLogs();          // ✅ wait for logs
+}
 });
 
 // --------- ADMIN: ASSIGN TASKS ---------
@@ -255,7 +236,7 @@ if (res.ok) {
 
   document.getElementById("newUserName").value = "";
   document.getElementById("newUserProject").value = "";
-  alert("User added!");
+ 
 });
 
 // --------- ADMIN: DELETE USERS MODE ---------
