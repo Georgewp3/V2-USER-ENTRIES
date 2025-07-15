@@ -305,7 +305,7 @@ function renderLogTable() {
 
   taskLogs.forEach(entry => {
     const row = document.createElement("tr");
-    ["user", "project", "task", "status", "comment"].forEach(field => {
+["user", "project", "task", "status", "timestamp", "comment"].forEach(field => {
       const td = document.createElement("td");
       td.textContent = entry[field] || "";
       row.appendChild(td);
@@ -314,7 +314,6 @@ function renderLogTable() {
   });
 }
 
-// --------- EXPORT CSV ---------
 // --------- EXPORT CSV ---------
 let fileHandle = null;
 
