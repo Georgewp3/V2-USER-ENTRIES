@@ -1,40 +1,59 @@
-const API = "http://localhost:3000"; // your backend base URL
-
-
 // --------- USER TO PROJECT MAPPING ---------
-const userProjects = {};
+const userProjects = {
+"VASSILIS PAPAGEORGIOU": "IKEA",
+  "SAVVAS SARRI": "PUBLIC",
+  "NARENDER SINGH": "IKEA",
+  "SANDEEP SINGH": "IKEA",
+  "LOVEPREET SINGH": "IKEA",
+  "RAJINDER KUMAR SABI": "IKEA",
+  "GOURAV": "IKEA",
+  "RAMANDEEP SINGH ": "IKEA",
+  "RAVINDERJIT SINGH": "IKEA",
+  "GODDY NGEYOH": "IKEA",
+  "BODYLAWSON": "IKEA",
+  "DESMOND": "IKEA",
+  "MERLIN BASSECK NOAH": "IKEA",
+  "JULIE NTOKOU": "IKEA",
+  "PARWINDER SINGH ( PIKA )": "IKEA",
+  "MBU CHRISTOPHER BATE": "IKEA",
+  "LIH ROSTENT": "IKEA",
+  "VALENTINOS MELINIOTIS ": "IKEA",
+  "ANDREAS K": "IKEA",
+  "ELENA YIALLOUROU": "IKEA",
+  "MARINA ASPROMALLI": "IKEA",
+  "TZENI DIMA": "IKEA",
+  "PAILAK TATARIAN": "IKEA",
+  "ELENA TOUMAZOU": "IKEA"
+};
 
-
-
+if (!localStorage.getItem("userProjects")) {
+  localStorage.setItem("userProjects", JSON.stringify(userProjects));
+}
 
 const userSelect = document.getElementById("userSelect");
 
-async function fetchUsersFromBackend() {
-  try {
-    const res = await fetch(`${API}/users`);
-    const users = await res.json();
-
-    Object.keys(userProjects).forEach(k => delete userProjects[k]); // clear
-
-    users.forEach(user => {
-      userProjects[user.name] = user.project;
-      if (!userTasks[user.name]) userTasks[user.name] = [];
-    });
-
-    refreshUserDropdown();
-    renderAdminTaskEditor();
-
-  } catch (err) {
-    console.error("Failed to load users:", err);
-  }
+const userTasks = {};
+if (!localStorage.getItem("userTasks")) {
+  Object.keys(userProjects).forEach(user => {
+    userTasks[user] = [];
+  });
+  localStorage.setItem("userTasks", JSON.stringify(userTasks));
 }
 
-
-const userTasks = {};
 const taskLogs = [];
 let deleteMode = false;
 const selectedToDelete = new Set();
 
+// --------- LOAD FROM LOCAL STORAGE ---------
+if (localStorage.getItem("userProjects")) {
+  Object.assign(userProjects, JSON.parse(localStorage.getItem("userProjects")));
+}
+if (localStorage.getItem("userTasks")) {
+  Object.assign(userTasks, JSON.parse(localStorage.getItem("userTasks")));
+}
+if (localStorage.getItem("taskLogs")) {
+  taskLogs.push(...JSON.parse(localStorage.getItem("taskLogs")));
+}
 
 // --------- POPULATE USER DROPDOWN ---------
 function refreshUserDropdown() {
@@ -68,7 +87,7 @@ userSelect.addEventListener("change", () => {
 });
 
 // --------- SUBMIT BUTTON ---------
-document.getElementById("submitEntry").addEventListener("click", async () => {
+document.getElementById("submitEntry").addEventListener("click", () => {
   const user = userSelect.value;
   const task = document.getElementById("taskSelect").value;
   const statusValue = document.getElementById("statusSelect").value;
@@ -78,33 +97,25 @@ document.getElementById("submitEntry").addEventListener("click", async () => {
     return;
   }
 
-  const timestamp = formatTimestamp(new Date());
+const timestamp = formatTimestamp(new Date());
   const status = statusValue === "COMPLETED" ? `COMPLETED ${timestamp}` : "NOT COMPLETED";
-  const project = userProjects[user];
 
-  try {
-    const res = await fetch(`${API}/submit`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: user, project, task, status, timestamp })
-    });
+  const entry = {
+    user,
+    project: userProjects[user],
+    task,
+    status
+  };
 
-    if (!res.ok) throw new Error("Submission failed");
+  taskLogs.push(entry);
+  localStorage.setItem("taskLogs", JSON.stringify(taskLogs));
+  updateSubmittedTaskHints();
+  alert("Entry submitted!");
 
-    alert("Entry submitted!");
-
-    userSelect.value = "";
-    document.getElementById("projectName").textContent = "---";
-    document.getElementById("taskSelect").innerHTML = '<option value="">— choose task —</option>';
-    document.getElementById("statusSelect").value = "";
-
-    fetchTaskLogs(); // refresh the logs from DB
-    updateSubmittedTaskHints(); // update ✅ display
-
-  } catch (err) {
-    console.error(err);
-    alert("An error occurred while submitting the entry.");
-  }
+  userSelect.value = "";
+  document.getElementById("projectName").textContent = "---";
+  document.getElementById("taskSelect").innerHTML = '<option value="">— choose task —</option>';
+  document.getElementById("statusSelect").value = "";
 });
 
 // --------- ADMIN LOGIN ---------
@@ -114,17 +125,19 @@ document.getElementById("adminLoginToggle").addEventListener("click", () => {
   prompt.style.display = prompt.style.display === "block" ? "none" : "block";
 });
 
-document.getElementById("adminSubmit").addEventListener("click", async () => {
+document.getElementById("adminSubmit").addEventListener("click", () => {
   const enteredCode = document.getElementById("adminCode").value;
   if (enteredCode === adminCode) {
-  document.getElementById("tab1").style.display = "none";
-  document.getElementById("tab2").style.display = "block";
-  document.getElementById("tab3").style.display = "block";
-  document.getElementById("adminLoginWrapper").style.display = "none";
+    document.getElementById("tab1").style.display = "none";
+    document.getElementById("tab2").style.display = "block";
+    document.getElementById("tab3").style.display = "block";
+    document.getElementById("adminLoginWrapper").style.display = "none";
 
-  await fetchUsersFromBackend();  // ✅ wait for users to load
-  await fetchTaskLogs();          // ✅ wait for logs
-}
+    renderAdminTaskEditor();
+    renderLogTable();
+  } else {
+    alert("Incorrect code.");
+  }
 });
 
 // --------- ADMIN: ASSIGN TASKS ---------
@@ -203,7 +216,7 @@ function updateSubmittedTaskHints() {
 }
 
 // --------- ADMIN: ADD USER ---------
-document.getElementById("addUserBtn").addEventListener("click", async () => {
+document.getElementById("addUserBtn").addEventListener("click", () => {
   const name = document.getElementById("newUserName").value.trim().toUpperCase();
   const project = document.getElementById("newUserProject").value.trim().toUpperCase();
 
@@ -217,22 +230,14 @@ document.getElementById("addUserBtn").addEventListener("click", async () => {
     return;
   }
 
-  const res = await fetch(`${API}/add-user`, {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ name, project })
-});
+  userProjects[name] = project;
+  userTasks[name] = [];
 
-if (res.ok) {
-  alert("User added!");
-  document.getElementById("newUserName").value = "";
-  document.getElementById("newUserProject").value = "";
-  fetchUsersFromBackend();
-} else {
-  alert("Failed to add user.");
-}
+  localStorage.setItem("userProjects", JSON.stringify(userProjects));
+  localStorage.setItem("userTasks", JSON.stringify(userTasks));
 
-  
+  renderAdminTaskEditor();
+  refreshUserDropdown();
 
   document.getElementById("newUserName").value = "";
   document.getElementById("newUserProject").value = "";
@@ -247,7 +252,7 @@ document.getElementById("toggleDeleteMode").addEventListener("click", () => {
   renderAdminTaskEditor();
 });
 
-document.getElementById("confirmDelete").addEventListener("click", async () => {
+document.getElementById("confirmDelete").addEventListener("click", () => {
   if (selectedToDelete.size === 0) {
     alert("Please select at least one user to delete.");
     return;
@@ -256,20 +261,17 @@ document.getElementById("confirmDelete").addEventListener("click", async () => {
   const confirmDelete = confirm(`Delete ${selectedToDelete.size} user(s)?`);
   if (!confirmDelete) return;
 
-  for (let user of selectedToDelete) {
-  await fetch(`${API}/user/${encodeURIComponent(user)}`, {
-    method: "DELETE"
+  selectedToDelete.forEach(user => {
+    delete userProjects[user];
+    delete userTasks[user];
+    for (let i = taskLogs.length - 1; i >= 0; i--) {
+      if (taskLogs[i].user === user) taskLogs.splice(i, 1);
+    }
   });
-}
-selectedToDelete.clear();
-deleteMode = false;
-document.getElementById("deleteControls").style.display = "none";
 
-fetchUsersFromBackend();
-fetchTaskLogs();
-
-
- 
+  localStorage.setItem("userProjects", JSON.stringify(userProjects));
+  localStorage.setItem("userTasks", JSON.stringify(userTasks));
+  localStorage.setItem("taskLogs", JSON.stringify(taskLogs));
 
   selectedToDelete.clear();
   deleteMode = false;
@@ -306,19 +308,29 @@ function renderLogTable() {
   });
 }
 
-async function fetchTaskLogs() {
-  try {
-    const res = await fetch(`${API}/logs`);
-    const logs = await res.json();
-    taskLogs.length = 0;
-    taskLogs.push(...logs);
-    renderLogTable();
-    updateSubmittedTaskHints();
-  } catch (err) {
-    console.error("Failed to load logs:", err);
+// --------- EXPORT CSV ---------
+document.getElementById("exportCSV").addEventListener("click", () => {
+  if (taskLogs.length === 0) {
+    alert("No entries to export.");
+    return;
   }
-}
 
+  const headers = ["User", "Project", "Task", "Status"];
+  const rows = taskLogs.map(log => [log.user, log.project, log.task, log.status]);
+
+  const csvContent = [headers, ...rows]
+    .map(row => row.map(field => `"${field}"`).join(","))
+    .join("\n");
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "task-logs.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+});
 
 // --------- CLEAR DATA BANK ---------
 document.getElementById("clearDataBank").addEventListener("click", () => {
@@ -348,6 +360,3 @@ function formatTimestamp(date) {
 
   return `${day}/${month}/${year} ${hours}:${minutes}`;
 }
-
-
-
