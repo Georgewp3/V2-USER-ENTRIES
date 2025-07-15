@@ -1,36 +1,34 @@
-// --------- USER TO PROJECT MAPPING ---------
-const userProjects = {
-"VASSILIS PAPAGEORGIOU": "IKEA",
-  "SAVVAS SARRI": "PUBLIC",
-  "NARENDER SINGH": "IKEA",
-  "SANDEEP SINGH": "IKEA",
-  "LOVEPREET SINGH": "IKEA",
-  "RAJINDER KUMAR SABI": "IKEA",
-  "GOURAV": "IKEA",
-  "RAMANDEEP SINGH ": "IKEA",
-  "RAVINDERJIT SINGH": "IKEA",
-  "GODDY NGEYOH": "IKEA",
-  "BODYLAWSON": "IKEA",
-  "DESMOND": "IKEA",
-  "MERLIN BASSECK NOAH": "IKEA",
-  "JULIE NTOKOU": "IKEA",
-  "PARWINDER SINGH ( PIKA )": "IKEA",
-  "MBU CHRISTOPHER BATE": "IKEA",
-  "LIH ROSTENT": "IKEA",
-  "VALENTINOS MELINIOTIS ": "IKEA",
-  "ANDREAS K": "IKEA",
-  "ELENA YIALLOUROU": "IKEA",
-  "MARINA ASPROMALLI": "IKEA",
-  "TZENI DIMA": "IKEA",
-  "PAILAK TATARIAN": "IKEA",
-  "ELENA TOUMAZOU": "IKEA"
-};
+const API = "http://localhost:3000"; // your backend base URL
 
-if (!localStorage.getItem("userProjects")) {
-  localStorage.setItem("userProjects", JSON.stringify(userProjects));
-}
+
+// --------- USER TO PROJECT MAPPING ---------
+const userProjects = {};
+
+
+
 
 const userSelect = document.getElementById("userSelect");
+
+async function fetchUsersFromBackend() {
+  try {
+    const res = await fetch(`${API}/users`);
+    const users = await res.json();
+
+    Object.keys(userProjects).forEach(k => delete userProjects[k]); // clear
+
+    users.forEach(user => {
+      userProjects[user.name] = user.project;
+      if (!userTasks[user.name]) userTasks[user.name] = [];
+    });
+
+    refreshUserDropdown();
+    renderAdminTaskEditor();
+
+  } catch (err) {
+    console.error("Failed to load users:", err);
+  }
+}
+
 
 const userTasks = {};
 if (!localStorage.getItem("userTasks")) {
@@ -87,7 +85,7 @@ userSelect.addEventListener("change", () => {
 });
 
 // --------- SUBMIT BUTTON ---------
-document.getElementById("submitEntry").addEventListener("click", () => {
+document.getElementById("submitEntry").addEventListener("click", async () => {
   const user = userSelect.value;
   const task = document.getElementById("taskSelect").value;
   const statusValue = document.getElementById("statusSelect").value;
@@ -97,25 +95,33 @@ document.getElementById("submitEntry").addEventListener("click", () => {
     return;
   }
 
-const timestamp = formatTimestamp(new Date());
+  const timestamp = formatTimestamp(new Date());
   const status = statusValue === "COMPLETED" ? `COMPLETED ${timestamp}` : "NOT COMPLETED";
+  const project = userProjects[user];
 
-  const entry = {
-    user,
-    project: userProjects[user],
-    task,
-    status
-  };
+  try {
+    const res = await fetch(`${API}/submit`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: user, project, task, status, timestamp })
+    });
 
-  taskLogs.push(entry);
-  localStorage.setItem("taskLogs", JSON.stringify(taskLogs));
-  updateSubmittedTaskHints();
-  alert("Entry submitted!");
+    if (!res.ok) throw new Error("Submission failed");
 
-  userSelect.value = "";
-  document.getElementById("projectName").textContent = "---";
-  document.getElementById("taskSelect").innerHTML = '<option value="">— choose task —</option>';
-  document.getElementById("statusSelect").value = "";
+    alert("Entry submitted!");
+
+    userSelect.value = "";
+    document.getElementById("projectName").textContent = "---";
+    document.getElementById("taskSelect").innerHTML = '<option value="">— choose task —</option>';
+    document.getElementById("statusSelect").value = "";
+
+    fetchTaskLogs(); // refresh the logs from DB
+    updateSubmittedTaskHints(); // update ✅ display
+
+  } catch (err) {
+    console.error(err);
+    alert("An error occurred while submitting the entry.");
+  }
 });
 
 // --------- ADMIN LOGIN ---------
@@ -133,8 +139,8 @@ document.getElementById("adminSubmit").addEventListener("click", () => {
     document.getElementById("tab3").style.display = "block";
     document.getElementById("adminLoginWrapper").style.display = "none";
 
-    renderAdminTaskEditor();
-    renderLogTable();
+    fetchUsersFromBackend();
+    fetchTaskLogs();
   } else {
     alert("Incorrect code.");
   }
@@ -216,7 +222,7 @@ function updateSubmittedTaskHints() {
 }
 
 // --------- ADMIN: ADD USER ---------
-document.getElementById("addUserBtn").addEventListener("click", () => {
+document.getElementById("addUserBtn").addEventListener("click", async () => {
   const name = document.getElementById("newUserName").value.trim().toUpperCase();
   const project = document.getElementById("newUserProject").value.trim().toUpperCase();
 
@@ -230,14 +236,22 @@ document.getElementById("addUserBtn").addEventListener("click", () => {
     return;
   }
 
-  userProjects[name] = project;
-  userTasks[name] = [];
+  const res = await fetch(`${API}/add-user`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ name, project })
+});
 
-  localStorage.setItem("userProjects", JSON.stringify(userProjects));
-  localStorage.setItem("userTasks", JSON.stringify(userTasks));
+if (res.ok) {
+  alert("User added!");
+  document.getElementById("newUserName").value = "";
+  document.getElementById("newUserProject").value = "";
+  fetchUsersFromBackend();
+} else {
+  alert("Failed to add user.");
+}
 
-  renderAdminTaskEditor();
-  refreshUserDropdown();
+  
 
   document.getElementById("newUserName").value = "";
   document.getElementById("newUserProject").value = "";
@@ -252,7 +266,7 @@ document.getElementById("toggleDeleteMode").addEventListener("click", () => {
   renderAdminTaskEditor();
 });
 
-document.getElementById("confirmDelete").addEventListener("click", () => {
+document.getElementById("confirmDelete").addEventListener("click", async () => {
   if (selectedToDelete.size === 0) {
     alert("Please select at least one user to delete.");
     return;
@@ -261,17 +275,20 @@ document.getElementById("confirmDelete").addEventListener("click", () => {
   const confirmDelete = confirm(`Delete ${selectedToDelete.size} user(s)?`);
   if (!confirmDelete) return;
 
-  selectedToDelete.forEach(user => {
-    delete userProjects[user];
-    delete userTasks[user];
-    for (let i = taskLogs.length - 1; i >= 0; i--) {
-      if (taskLogs[i].user === user) taskLogs.splice(i, 1);
-    }
+  for (let user of selectedToDelete) {
+  await fetch(`${API}/user/${encodeURIComponent(user)}`, {
+    method: "DELETE"
   });
+}
+selectedToDelete.clear();
+deleteMode = false;
+document.getElementById("deleteControls").style.display = "none";
 
-  localStorage.setItem("userProjects", JSON.stringify(userProjects));
-  localStorage.setItem("userTasks", JSON.stringify(userTasks));
-  localStorage.setItem("taskLogs", JSON.stringify(taskLogs));
+fetchUsersFromBackend();
+fetchTaskLogs();
+
+
+ 
 
   selectedToDelete.clear();
   deleteMode = false;
@@ -308,29 +325,19 @@ function renderLogTable() {
   });
 }
 
-// --------- EXPORT CSV ---------
-document.getElementById("exportCSV").addEventListener("click", () => {
-  if (taskLogs.length === 0) {
-    alert("No entries to export.");
-    return;
+async function fetchTaskLogs() {
+  try {
+    const res = await fetch(`${API}/logs`);
+    const logs = await res.json();
+    taskLogs.length = 0;
+    taskLogs.push(...logs);
+    renderLogTable();
+    updateSubmittedTaskHints();
+  } catch (err) {
+    console.error("Failed to load logs:", err);
   }
+}
 
-  const headers = ["User", "Project", "Task", "Status"];
-  const rows = taskLogs.map(log => [log.user, log.project, log.task, log.status]);
-
-  const csvContent = [headers, ...rows]
-    .map(row => row.map(field => `"${field}"`).join(","))
-    .join("\n");
-
-  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "task-logs.csv";
-  a.click();
-  URL.revokeObjectURL(url);
-});
 
 // --------- CLEAR DATA BANK ---------
 document.getElementById("clearDataBank").addEventListener("click", () => {
@@ -360,3 +367,6 @@ function formatTimestamp(date) {
 
   return `${day}/${month}/${year} ${hours}:${minutes}`;
 }
+
+
+
