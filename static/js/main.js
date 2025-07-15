@@ -236,7 +236,7 @@ if (res.ok) {
 
   document.getElementById("newUserName").value = "";
   document.getElementById("newUserProject").value = "";
- 
+  alert("User added!");
 });
 
 // --------- ADMIN: DELETE USERS MODE ---------
