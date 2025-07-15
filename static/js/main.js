@@ -99,15 +99,16 @@ document.getElementById("submitEntry").addEventListener("click", () => {
   }
 
   const timestamp = formatTimestamp(new Date());
-  const status = statusValue === "COMPLETED" ? `COMPLETED ${timestamp}` : "NOT COMPLETED";
+const status = statusValue === "COMPLETED" ? "COMPLETED" : "NOT COMPLETED";
 
   const entry = {
-    user,
-    project: userProjects[user],
-    task,
-    status,
-    comment: comment || ""
-  };
+  user,
+  project: userProjects[user],
+  task,
+  status,
+  timestamp,
+  comment: comment || ""
+};
 
   taskLogs.push(entry);
   localStorage.setItem("taskLogs", JSON.stringify(taskLogs));
@@ -314,6 +315,7 @@ function renderLogTable() {
 }
 
 // --------- EXPORT CSV ---------
+// --------- EXPORT CSV ---------
 let fileHandle = null;
 
 document.getElementById("exportCSV").addEventListener("click", async () => {
@@ -322,14 +324,21 @@ document.getElementById("exportCSV").addEventListener("click", async () => {
     return;
   }
 
-  const headers = ["User", "Project", "Task", "Status", "Comment"];
-  const rows = taskLogs.map(log => [log.user, log.project, log.task, log.status, log.comment || ""]);
+  const headers = ["User", "Project", "Task", "Status", "Timestamp", "Comment"];
+  const rows = taskLogs.map(log => [
+    log.user,
+    log.project,
+    log.task,
+    log.status,
+    log.timestamp || "",
+    log.comment || ""
+  ]);
+
   const csvContent = [headers, ...rows]
-    .map(row => row.map(field => `"${field}"`).join(","))
+    .map(row => row.map(field => `"${(field || "").replace(/"/g, '""')}"`).join(","))
     .join("\n");
 
   try {
-    // First time: ask user to pick the save location
     if (!fileHandle) {
       const opts = {
         suggestedName: "task-logs.csv",
@@ -341,7 +350,6 @@ document.getElementById("exportCSV").addEventListener("click", async () => {
       fileHandle = await window.showSaveFilePicker(opts);
     }
 
-    // Write the file
     const writable = await fileHandle.createWritable();
     await writable.write(csvContent);
     await writable.close();
@@ -352,6 +360,7 @@ document.getElementById("exportCSV").addEventListener("click", async () => {
     alert("Export failed or was cancelled.");
   }
 });
+
 
 
 // --------- CLEAR DATA BANK ---------
