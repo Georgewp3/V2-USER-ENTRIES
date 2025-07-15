@@ -314,29 +314,45 @@ function renderLogTable() {
 }
 
 // --------- EXPORT CSV ---------
-document.getElementById("exportCSV").addEventListener("click", () => {
+let fileHandle = null;
+
+document.getElementById("exportCSV").addEventListener("click", async () => {
   if (taskLogs.length === 0) {
     alert("No entries to export.");
     return;
   }
 
   const headers = ["User", "Project", "Task", "Status", "Comment"];
-const rows = taskLogs.map(log => [log.user, log.project, log.task, log.status, log.comment || ""]);
-
-
+  const rows = taskLogs.map(log => [log.user, log.project, log.task, log.status, log.comment || ""]);
   const csvContent = [headers, ...rows]
     .map(row => row.map(field => `"${field}"`).join(","))
     .join("\n");
 
-  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
+  try {
+    // First time: ask user to pick the save location
+    if (!fileHandle) {
+      const opts = {
+        suggestedName: "task-logs.csv",
+        types: [{
+          description: "CSV file",
+          accept: { "text/csv": [".csv"] }
+        }]
+      };
+      fileHandle = await window.showSaveFilePicker(opts);
+    }
 
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "task-logs.csv";
-  a.click();
-  URL.revokeObjectURL(url);
+    // Write the file
+    const writable = await fileHandle.createWritable();
+    await writable.write(csvContent);
+    await writable.close();
+
+    alert("CSV exported and saved successfully.");
+  } catch (err) {
+    console.error("Export failed:", err);
+    alert("Export failed or was cancelled.");
+  }
 });
+
 
 // --------- CLEAR DATA BANK ---------
 document.getElementById("clearDataBank").addEventListener("click", () => {
