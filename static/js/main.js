@@ -91,20 +91,22 @@ document.getElementById("submitEntry").addEventListener("click", () => {
   const user = userSelect.value;
   const task = document.getElementById("taskSelect").value;
   const statusValue = document.getElementById("statusSelect").value;
+  const comment = document.getElementById("commentInput").value.trim();
 
   if (!user || !task || !statusValue) {
     alert("Please complete all steps before submitting.");
     return;
   }
 
-const timestamp = formatTimestamp(new Date());
+  const timestamp = formatTimestamp(new Date());
   const status = statusValue === "COMPLETED" ? `COMPLETED ${timestamp}` : "NOT COMPLETED";
 
   const entry = {
     user,
     project: userProjects[user],
     task,
-    status
+    status,
+    comment: comment || ""
   };
 
   taskLogs.push(entry);
@@ -112,11 +114,14 @@ const timestamp = formatTimestamp(new Date());
   updateSubmittedTaskHints();
   alert("Entry submitted!");
 
+  // Reset fields
   userSelect.value = "";
   document.getElementById("projectName").textContent = "---";
   document.getElementById("taskSelect").innerHTML = '<option value="">— choose task —</option>';
   document.getElementById("statusSelect").value = "";
+  document.getElementById("commentInput").value = "";
 });
+
 
 // --------- ADMIN LOGIN ---------
 const adminCode = "332133";
@@ -299,9 +304,9 @@ function renderLogTable() {
 
   taskLogs.forEach(entry => {
     const row = document.createElement("tr");
-    ["user", "project", "task", "status"].forEach(field => {
+    ["user", "project", "task", "status", "comment"].forEach(field => {
       const td = document.createElement("td");
-      td.textContent = entry[field];
+      td.textContent = entry[field] || "";
       row.appendChild(td);
     });
     tbody.appendChild(row);
@@ -315,8 +320,9 @@ document.getElementById("exportCSV").addEventListener("click", () => {
     return;
   }
 
-  const headers = ["User", "Project", "Task", "Status"];
-  const rows = taskLogs.map(log => [log.user, log.project, log.task, log.status]);
+  const headers = ["User", "Project", "Task", "Status", "Comment"];
+const rows = taskLogs.map(log => [log.user, log.project, log.task, log.status, log.comment || ""]);
+
 
   const csvContent = [headers, ...rows]
     .map(row => row.map(field => `"${field}"`).join(","))

@@ -364,3 +364,16 @@ h1, h2 {
   text-align: center;
   font-size: clamp(1.5rem, 5vw, 2rem);
 }
+
+.step-input textarea {
+  width: 100%;
+  height: 38px; /* similar to select height */
+  padding: 6px 10px;
+  font-size: 1rem;
+  font-family: inherit;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: white;
+  box-sizing: border-box;
+  resize: none; /* match non-resizable look of selects */
+}
