@@ -4,11 +4,31 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>User Entries</title>
-  <link rel="stylesheet" href="static/css/style.css" />
+ <!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDE0d01zL4PHXsudsEBzEQbC8mlra6Uhn4",
+    authDomain: "task-tracker-e6ef6.firebaseapp.com",
+    databaseURL: "https://task-tracker-e6ef6.firebaseio.com",
+    projectId: "task-tracker-e6ef6",
+    storageBucket: "task-tracker-e6ef6.appspot.com",
+    messagingSenderId: "920245021423",
+    appId: "1:920245021423:web:611c4dd63b726adc3b491a"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+</script>
+
 </head>
+
+
 <body>
 
-  
+  <script src="main-firebase.js"></script>
+
 
   <!-- 👤 Tab 1: User Entry Page -->
   <section id="tab1">
@@ -123,6 +143,5 @@
   </section>
 
   <!-- JS -->
-  <script src="static/js/main.js"></script>
 </body>
 </html>
