@@ -1,9 +1,11 @@
 // main-firebase.js
 // Firebase-based version of your app (no localStorage)
+window.addEventListener("DOMContentLoaded", () => {
+  // your entire existing code goes here
+
 
 // --------- FIREBASE REFERENCES ---------
 const userSelect = document.getElementById("userSelect");
-//const db = firebase.database();
 let userProjects = {};      // { username: projectName }
 let userTasks = {};         // { username: [task1, task2] }
 let taskLogs = [];          // [ {user, project, task, status, timestamp, comment} ]
@@ -263,3 +265,5 @@ function formatTimestamp(date) {
   const minutes = String(date.getMinutes()).padStart(2, "0");
   return `${day}/${month}/${year} ${hours}:${minutes}`;
 }
+
+});
