@@ -3,7 +3,7 @@
 
 // --------- FIREBASE REFERENCES ---------
 const userSelect = document.getElementById("userSelect");
-const db = firebase.database();
+//const db = firebase.database();
 let userProjects = {};      // { username: projectName }
 let userTasks = {};         // { username: [task1, task2] }
 let taskLogs = [];          // [ {user, project, task, status, timestamp, comment} ]
