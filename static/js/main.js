@@ -1,9 +1,9 @@
 // --------- CONFIG ---------
 const JSONBIN_API_KEY = "$2a$10$XRFIhmwbxyCpAoNFeje3Pu.b.MdVr5wCppVsnkkmE95htQIlX.AzW";
 const BIN_IDS = {
-  userProjects: "687cfdfd039d559a168aa98",
-  userTasks: "687cfe70d039d559a168aac0",
-  taskLogs: "687cfe88d039d559a168aad2"
+  userProjects: "687d09082244182a496060b2",
+  userTasks: "687d08f22244182a496060ad",
+  taskLogs: "687d08ddd039d559a168afc1"
 };
 const BIN_URL = (id) => `https://api.jsonbin.io/v3/b/${id}`;
 const HEADERS = {
