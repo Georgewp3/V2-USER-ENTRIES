@@ -158,8 +158,10 @@ function renderAdminTaskEditor() {
     const input = document.createElement("input");
     input.type = "text";
     input.placeholder = "Enter tasks (comma separated)";
-    const currentValue = userTasks[user] ? userTasks[user].join(", ") : "";
-    input.value = currentValue;
+    if (userTasks[user] && userTasks[user].length > 0) {
+  input.value = userTasks[user].join(", ");
+}
+
     input.addEventListener("input", async () => {
       const updated = input.value.split(",").map(t => t.trim()).filter(t => t);
       userTasks[user] = updated;
