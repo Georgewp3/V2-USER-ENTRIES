@@ -41,14 +41,37 @@ async function updateBin(binId, data) {
   });
 }
 
+let prevHashes = { projects: "", tasks: "", logs: "" };
+
+
+
 async function syncAll() {
-  userProjects = await fetchBin(BIN_IDS.userProjects);
-  userTasks = await fetchBin(BIN_IDS.userTasks);
-  taskLogs = await fetchBin(BIN_IDS.taskLogs);
-  refreshUserDropdown();
-  renderLogTable();
-  updateSubmittedTaskHints();
+  const newProjects = await fetchBin(BIN_IDS.userProjects);
+  const newTasks = await fetchBin(BIN_IDS.userTasks);
+  const newLogs = await fetchBin(BIN_IDS.taskLogs);
+
+  const projHash = JSON.stringify(newProjects);
+  const taskHash = JSON.stringify(newTasks);
+  const logHash = JSON.stringify(newLogs);
+
+  if (projHash !== prevHashes.projects) {
+    userProjects = newProjects;
+    refreshUserDropdown();
+    prevHashes.projects = projHash;
+  }
+  if (taskHash !== prevHashes.tasks) {
+    userTasks = newTasks;
+    updateSubmittedTaskHints();
+    prevHashes.tasks = taskHash;
+  }
+  if (logHash !== prevHashes.logs) {
+    taskLogs = newLogs;
+    renderLogTable();
+    updateSubmittedTaskHints();
+    prevHashes.logs = logHash;
+  }
 }
+
 
 setInterval(syncAll, POLL_INTERVAL);
 syncAll();
