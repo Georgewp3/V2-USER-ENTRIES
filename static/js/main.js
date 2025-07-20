@@ -61,6 +61,7 @@ async function syncAll() {
   }
   if (taskHash !== prevHashes.tasks) {
     userTasks = newTasks;
+    await renderAdminTaskEditor();
     updateSubmittedTaskHints();
     prevHashes.tasks = taskHash;
   }
@@ -75,6 +76,8 @@ async function syncAll() {
 
 setInterval(syncAll, POLL_INTERVAL);
 syncAll();
+
+
 
 function refreshUserDropdown() {
   const currentValue = userSelect.value;
@@ -158,7 +161,8 @@ function renderAdminTaskEditor() {
     const input = document.createElement("input");
     input.type = "text";
     input.placeholder = "Enter tasks (comma separated)";
-    if (userTasks[user] && userTasks[user].length > 0) {
+    input.value = ""; // default to blank
+if (userTasks[user] && Array.isArray(userTasks[user])) {
   input.value = userTasks[user].join(", ");
 }
 
