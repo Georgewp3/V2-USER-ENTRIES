@@ -1,52 +1,61 @@
-// ✅ Replace with your own values from JSONBin.io
-const JSONBIN_API_KEY = "$2a$10$gyYCEf/u4LV6J3QKxwrnbeSrt2oSAOhGjc2fN9c2OfxhXw9hx6sVq";
-const BIN_IDS = {
-  userProjects: "687ce8afd039d559a1689cd2",
-  userTasks: "687ce8ccd039d559a1689cdd",
-  taskLogs: "687ce8ebee4b395e61f23b4a"
+// --------- USER TO PROJECT MAPPING ---------
+const userProjects = {
+"VASSILIS PAPAGEORGIOU": "IKEA",
+  "SAVVAS SARRI": "PUBLIC",
+  "NARENDER SINGH": "IKEA",
+  "SANDEEP SINGH": "IKEA",
+  "LOVEPREET SINGH": "IKEA",
+  "RAJINDER KUMAR SABI": "IKEA",
+  "GOURAV": "IKEA",
+  "RAMANDEEP SINGH ": "IKEA",
+  "RAVINDERJIT SINGH": "IKEA",
+  "GODDY NGEYOH": "IKEA",
+  "BODYLAWSON": "IKEA",
+  "DESMOND": "IKEA",
+  "MERLIN BASSECK NOAH": "IKEA",
+  "JULIE NTOKOU": "IKEA",
+  "PARWINDER SINGH ( PIKA )": "IKEA",
+  "MBU CHRISTOPHER BATE": "IKEA",
+  "LIH ROSTENT": "IKEA",
+  "VALENTINOS MELINIOTIS ": "IKEA",
+  "ANDREAS K": "IKEA",
+  "ELENA YIALLOUROU": "IKEA",
+  "MARINA ASPROMALLI": "IKEA",
+  "TZENI DIMA": "IKEA",
+  "PAILAK TATARIAN": "IKEA",
+  "ELENA TOUMAZOU": "IKEA"
 };
 
-const HEADERS = {
-  "Content-Type": "application/json",
-  "X-Master-Key": JSONBIN_API_KEY
-};
+if (!localStorage.getItem("userProjects")) {
+  localStorage.setItem("userProjects", JSON.stringify(userProjects));
+}
 
-let userProjects = {};
-let userTasks = {};
-let taskLogs = [];
+const userSelect = document.getElementById("userSelect");
+
+const userTasks = {};
+if (!localStorage.getItem("userTasks")) {
+  Object.keys(userProjects).forEach(user => {
+    userTasks[user] = [];
+  });
+  localStorage.setItem("userTasks", JSON.stringify(userTasks));
+}
+
+const taskLogs = [];
 let deleteMode = false;
 const selectedToDelete = new Set();
 
-// --- 🔁 JSONBin Functions ---
-async function fetchBin(bin) {
-  const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_IDS[bin]}/latest`, {
-    headers: HEADERS
-  });
-  const data = await res.json();
-  return data.record || {};
+// --------- LOAD FROM LOCAL STORAGE ---------
+if (localStorage.getItem("userProjects")) {
+  Object.assign(userProjects, JSON.parse(localStorage.getItem("userProjects")));
+}
+if (localStorage.getItem("userTasks")) {
+  Object.assign(userTasks, JSON.parse(localStorage.getItem("userTasks")));
+}
+if (localStorage.getItem("taskLogs")) {
+  taskLogs.push(...JSON.parse(localStorage.getItem("taskLogs")));
 }
 
-async function updateBin(bin, data) {
-  await fetch(`https://api.jsonbin.io/v3/b/${BIN_IDS[bin]}`, {
-    method: "PUT",
-    headers: HEADERS,
-    body: JSON.stringify(data)
-  });
-}
-
-// --- 🔄 Load & Initialize All Data ---
-async function loadAllData() {
-  userProjects = await fetchBin("userProjects");
-  userTasks = await fetchBin("userTasks");
-  taskLogs = await fetchBin("taskLogs");
-
-  refreshUserDropdown();
-  renderAdminTaskEditor();
-  renderLogTable();
-}
-
-// --- 🧠 Populate User Dropdown ---
-const userSelect = document.getElementById("userSelect");
+// --------- POPULATE USER DROPDOWN ---------
 function refreshUserDropdown() {
   const currentValue = userSelect.value;
   userSelect.innerHTML = '<option value="">— choose user —</option>';
@@ -58,8 +67,9 @@ function refreshUserDropdown() {
   });
   userSelect.value = currentValue;
 }
+refreshUserDropdown();
 
-// --- 🧩 User Select Handler ---
+// --------- USER SELECTION HANDLER ---------
 userSelect.addEventListener("change", () => {
   const selectedUser = userSelect.value;
   const project = userProjects[selectedUser] || "---";
@@ -76,31 +86,34 @@ userSelect.addEventListener("change", () => {
   });
 });
 
-// --- 📝 Submit Entry ---
-document.getElementById("submitEntry").addEventListener("click", async () => {
+// --------- SUBMIT BUTTON ---------
+document.getElementById("submitEntry").addEventListener("click", () => {
   const user = userSelect.value;
   const task = document.getElementById("taskSelect").value;
-  const status = document.getElementById("statusSelect").value;
+  const statusValue = document.getElementById("statusSelect").value;
   const comment = document.getElementById("commentInput").value.trim();
 
-  if (!user || !task || !status) {
+  if (!user || !task || !statusValue) {
     alert("Please complete all steps before submitting.");
     return;
   }
 
   const timestamp = formatTimestamp(new Date());
+const status = statusValue === "COMPLETED" ? "COMPLETED" : "NOT COMPLETED";
 
-  taskLogs.push({
-    user,
-    project: userProjects[user],
-    task,
-    status,
-    timestamp,
-    comment
-  });
+  const entry = {
+  user,
+  project: userProjects[user],
+  task,
+  status,
+  timestamp,
+  comment: comment || ""
+};
 
-  await updateBin("taskLogs", taskLogs);
-  await loadAllData();
+  taskLogs.push(entry);
+  localStorage.setItem("taskLogs", JSON.stringify(taskLogs));
+  updateSubmittedTaskHints();
+  alert("Entry submitted!");
 
   // Reset fields
   userSelect.value = "";
@@ -108,30 +121,32 @@ document.getElementById("submitEntry").addEventListener("click", async () => {
   document.getElementById("taskSelect").innerHTML = '<option value="">— choose task —</option>';
   document.getElementById("statusSelect").value = "";
   document.getElementById("commentInput").value = "";
-  alert("Entry submitted!");
 });
 
-// --- 🔐 Admin Login ---
+
+// --------- ADMIN LOGIN ---------
 const adminCode = "332133";
 document.getElementById("adminLoginToggle").addEventListener("click", () => {
   const prompt = document.getElementById("adminPrompt");
   prompt.style.display = prompt.style.display === "block" ? "none" : "block";
 });
 
-document.getElementById("adminSubmit").addEventListener("click", async () => {
+document.getElementById("adminSubmit").addEventListener("click", () => {
   const enteredCode = document.getElementById("adminCode").value;
   if (enteredCode === adminCode) {
     document.getElementById("tab1").style.display = "none";
     document.getElementById("tab2").style.display = "block";
     document.getElementById("tab3").style.display = "block";
     document.getElementById("adminLoginWrapper").style.display = "none";
-    await loadAllData();
+
+    renderAdminTaskEditor();
+    renderLogTable();
   } else {
     alert("Incorrect code.");
   }
 });
 
-// --- 🛠 Admin Task Editor ---
+// --------- ADMIN: ASSIGN TASKS ---------
 function renderAdminTaskEditor() {
   const container = document.getElementById("adminTaskContainer");
   container.innerHTML = "";
@@ -157,12 +172,17 @@ function renderAdminTaskEditor() {
     const input = document.createElement("input");
     input.type = "text";
     input.placeholder = "Enter tasks (comma separated)";
-    input.value = userTasks[user]?.join(", ") || "";
+    const currentValue = userTasks[user] ? userTasks[user].join(", ") : "";
+    input.value = currentValue;
 
-    input.addEventListener("input", async () => {
-      const updated = input.value.split(",").map(t => t.trim()).filter(t => t.length > 0);
-      userTasks[user] = updated;
-      await updateBin("userTasks", userTasks);
+    const raw = currentValue.split(",").map(t => t.trim());
+    userTasks[user] = raw.filter(t => t.length > 0);
+    localStorage.setItem("userTasks", JSON.stringify(userTasks));
+
+    input.addEventListener("input", () => {
+      const updated = input.value.split(",").map(t => t.trim());
+      userTasks[user] = updated.filter(t => t.length > 0);
+      localStorage.setItem("userTasks", JSON.stringify(userTasks));
       updateSubmittedTaskHints();
     });
 
@@ -174,9 +194,10 @@ function renderAdminTaskEditor() {
   updateSubmittedTaskHints();
 }
 
-// --- ✅ Mark Submitted Tasks ---
+// --------- ADMIN: SHOW ✅ FOR SUBMITTED TASKS ---------
 function updateSubmittedTaskHints() {
   const rows = document.querySelectorAll(".admin-task-row");
+
   rows.forEach(row => {
     const label = row.querySelector("label");
     const input = row.querySelector("input");
@@ -184,13 +205,15 @@ function updateSubmittedTaskHints() {
 
     const user = label.textContent;
     const assignedTasks = input.value.split(",").map(t => t.trim());
+
     const submitted = taskLogs
       .filter(entry => entry.user === user)
       .map(entry => entry.task);
 
-    const hints = assignedTasks.map(task =>
-      submitted.includes(task) ? `${task} ✅` : task
-    );
+    const hints = assignedTasks.map(task => {
+      if (submitted.includes(task)) return `${task} ✅`;
+      return task;
+    });
 
     if (document.activeElement !== input) {
       input.value = hints.join(", ");
@@ -198,27 +221,36 @@ function updateSubmittedTaskHints() {
   });
 }
 
-// --- ➕ Add User ---
-document.getElementById("addUserBtn").addEventListener("click", async () => {
+// --------- ADMIN: ADD USER ---------
+document.getElementById("addUserBtn").addEventListener("click", () => {
   const name = document.getElementById("newUserName").value.trim().toUpperCase();
   const project = document.getElementById("newUserProject").value.trim().toUpperCase();
 
-  if (!name || !project) return alert("Please enter both a name and a project.");
-  if (userProjects[name]) return alert("This name already exists.");
+  if (!name || !project) {
+    alert("Please enter both a name and a project.");
+    return;
+  }
+
+  if (userProjects[name]) {
+    alert("This name already exists.");
+    return;
+  }
 
   userProjects[name] = project;
   userTasks[name] = [];
 
-  await updateBin("userProjects", userProjects);
-  await updateBin("userTasks", userTasks);
-  await loadAllData();
+  localStorage.setItem("userProjects", JSON.stringify(userProjects));
+  localStorage.setItem("userTasks", JSON.stringify(userTasks));
+
+  renderAdminTaskEditor();
+  refreshUserDropdown();
 
   document.getElementById("newUserName").value = "";
   document.getElementById("newUserProject").value = "";
   alert("User added!");
 });
 
-// --- 🗑 Delete Mode Toggle ---
+// --------- ADMIN: DELETE USERS MODE ---------
 document.getElementById("toggleDeleteMode").addEventListener("click", () => {
   deleteMode = !deleteMode;
   document.getElementById("deleteControls").style.display = deleteMode ? "block" : "none";
@@ -226,9 +258,11 @@ document.getElementById("toggleDeleteMode").addEventListener("click", () => {
   renderAdminTaskEditor();
 });
 
-// --- ❌ Confirm Delete ---
-document.getElementById("confirmDelete").addEventListener("click", async () => {
-  if (selectedToDelete.size === 0) return alert("Select at least one user.");
+document.getElementById("confirmDelete").addEventListener("click", () => {
+  if (selectedToDelete.size === 0) {
+    alert("Please select at least one user to delete.");
+    return;
+  }
 
   const confirmDelete = confirm(`Delete ${selectedToDelete.size} user(s)?`);
   if (!confirmDelete) return;
@@ -236,28 +270,32 @@ document.getElementById("confirmDelete").addEventListener("click", async () => {
   selectedToDelete.forEach(user => {
     delete userProjects[user];
     delete userTasks[user];
-    taskLogs = taskLogs.filter(log => log.user !== user);
+    for (let i = taskLogs.length - 1; i >= 0; i--) {
+      if (taskLogs[i].user === user) taskLogs.splice(i, 1);
+    }
   });
 
-  await updateBin("userProjects", userProjects);
-  await updateBin("userTasks", userTasks);
-  await updateBin("taskLogs", taskLogs);
-  await loadAllData();
+  localStorage.setItem("userProjects", JSON.stringify(userProjects));
+  localStorage.setItem("userTasks", JSON.stringify(userTasks));
+  localStorage.setItem("taskLogs", JSON.stringify(taskLogs));
 
   selectedToDelete.clear();
   deleteMode = false;
   document.getElementById("deleteControls").style.display = "none";
+  renderAdminTaskEditor();
+  refreshUserDropdown();
+  renderLogTable();
 });
 
-// --- 📋 Render Task Logs Table ---
+// --------- ADMIN: VIEW TASK LOGS ---------
 function renderLogTable() {
   const tbody = document.querySelector("#logTable tbody");
   tbody.innerHTML = "";
 
-  if (!taskLogs.length) {
+  if (taskLogs.length === 0) {
     const row = document.createElement("tr");
     const cell = document.createElement("td");
-    cell.colSpan = 6;
+    cell.colSpan = 4;
     cell.textContent = "No entries submitted yet.";
     cell.style.textAlign = "center";
     row.appendChild(cell);
@@ -267,7 +305,7 @@ function renderLogTable() {
 
   taskLogs.forEach(entry => {
     const row = document.createElement("tr");
-    ["user", "project", "task", "status", "timestamp", "comment"].forEach(field => {
+["user", "project", "task", "status", "timestamp", "comment"].forEach(field => {
       const td = document.createElement("td");
       td.textContent = entry[field] || "";
       row.appendChild(td);
@@ -276,19 +314,14 @@ function renderLogTable() {
   });
 }
 
-// --- 🧹 Clear Data Bank ---
-document.getElementById("clearDataBank").addEventListener("click", async () => {
-  const confirmClear = confirm("Are you sure you want to clear all submitted entries?");
-  if (!confirmClear) return;
+// --------- EXPORT CSV ---------
+let fileHandle = null;
 
-  taskLogs = [];
-  await updateBin("taskLogs", []);
-  await loadAllData();
-});
-
-// --- 📤 Export CSV ---
 document.getElementById("exportCSV").addEventListener("click", async () => {
-  if (!taskLogs.length) return alert("No entries to export.");
+  if (taskLogs.length === 0) {
+    alert("No entries to export.");
+    return;
+  }
 
   const headers = ["User", "Project", "Task", "Status", "Timestamp", "Comment"];
   const rows = taskLogs.map(log => [
@@ -304,18 +337,43 @@ document.getElementById("exportCSV").addEventListener("click", async () => {
     .map(row => row.map(field => `"${(field || "").replace(/"/g, '""')}"`).join(","))
     .join("\n");
 
-  const blob = new Blob([csvContent], { type: "text/csv" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "task-logs.csv";
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
+  try {
+    if (!fileHandle) {
+      const opts = {
+        suggestedName: "task-logs.csv",
+        types: [{
+          description: "CSV file",
+          accept: { "text/csv": [".csv"] }
+        }]
+      };
+      fileHandle = await window.showSaveFilePicker(opts);
+    }
+
+    const writable = await fileHandle.createWritable();
+    await writable.write(csvContent);
+    await writable.close();
+
+    alert("CSV exported and saved successfully.");
+  } catch (err) {
+    console.error("Export failed:", err);
+    alert("Export failed or was cancelled.");
+  }
 });
 
-// --- ⬅️ Back Button ---
+
+
+// --------- CLEAR DATA BANK ---------
+document.getElementById("clearDataBank").addEventListener("click", () => {
+  const confirmClear = confirm("Are you sure you want to clear all submitted entries?");
+  if (!confirmClear) return;
+
+  taskLogs.length = 0;
+  localStorage.removeItem("taskLogs");
+  renderLogTable();
+  updateSubmittedTaskHints();
+});
+
+// --------- ADMIN: BACK TO USER TAB ---------
 document.getElementById("backToUserTab").addEventListener("click", () => {
   document.getElementById("tab1").style.display = "block";
   document.getElementById("tab2").style.display = "none";
@@ -323,16 +381,12 @@ document.getElementById("backToUserTab").addEventListener("click", () => {
   document.getElementById("adminLoginWrapper").style.display = "block";
 });
 
-// --- 🕓 Timestamp Format ---
 function formatTimestamp(date) {
   const day = String(date.getDate()).padStart(2, "0");
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const year = date.getFullYear();
   const hours = String(date.getHours()).padStart(2, "0");
   const minutes = String(date.getMinutes()).padStart(2, "0");
+
   return `${day}/${month}/${year} ${hours}:${minutes}`;
 }
-
-// --- ⏱ Start Polling ---
-setInterval(loadAllData, 5000);
-window.addEventListener("DOMContentLoaded", loadAllData);
