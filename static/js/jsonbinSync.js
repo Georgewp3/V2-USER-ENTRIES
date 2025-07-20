@@ -11,12 +11,13 @@ const headers = {
   'X-Master-Key': JSONBIN_API_KEY
 };
 
-// --- userProjects ---
+// ---------- userProjects ----------
 async function fetchUserProjects() {
   const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_USER_PROJECTS}/latest`, { headers });
   const json = await res.json();
-  return json.record;
+  return json.record || {};
 }
+
 async function saveUserProjects(data) {
   await fetch(`https://api.jsonbin.io/v3/b/${BIN_USER_PROJECTS}`, {
     method: 'PUT',
@@ -24,6 +25,7 @@ async function saveUserProjects(data) {
     body: JSON.stringify(data)
   });
 }
+
 function startPollingUserProjects(callback) {
   setInterval(async () => {
     try {
@@ -35,12 +37,13 @@ function startPollingUserProjects(callback) {
   }, 5000);
 }
 
-// --- userTasks ---
+// ---------- userTasks ----------
 async function fetchUserTasks() {
   const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_USER_TASKS}/latest`, { headers });
   const json = await res.json();
-  return json.record;
+  return json.record || {};
 }
+
 async function saveUserTasks(data) {
   await fetch(`https://api.jsonbin.io/v3/b/${BIN_USER_TASKS}`, {
     method: 'PUT',
@@ -48,6 +51,7 @@ async function saveUserTasks(data) {
     body: JSON.stringify(data)
   });
 }
+
 function startPollingUserTasks(callback) {
   setInterval(async () => {
     try {
@@ -59,12 +63,13 @@ function startPollingUserTasks(callback) {
   }, 5000);
 }
 
-// --- taskLogs ---
+// ---------- taskLogs ----------
 async function fetchTaskLogs() {
   const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_TASK_LOGS}/latest`, { headers });
   const json = await res.json();
-  return json.record;
+  return json.record || [];
 }
+
 async function saveTaskLogs(data) {
   await fetch(`https://api.jsonbin.io/v3/b/${BIN_TASK_LOGS}`, {
     method: 'PUT',
@@ -72,6 +77,7 @@ async function saveTaskLogs(data) {
     body: JSON.stringify(data)
   });
 }
+
 function startPollingTaskLogs(callback) {
   setInterval(async () => {
     try {
@@ -83,6 +89,7 @@ function startPollingTaskLogs(callback) {
   }, 5000);
 }
 
+// ---------- Export All ----------
 export {
   fetchUserProjects, saveUserProjects, startPollingUserProjects,
   fetchUserTasks, saveUserTasks, startPollingUserTasks,

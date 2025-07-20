@@ -1,74 +1,45 @@
 import {
-  fetchUserProjects,
-  saveUserProjects,
-  startPollingUserProjects
+  fetchUserProjects, saveUserProjects, startPollingUserProjects,
+  fetchUserTasks, saveUserTasks, startPollingUserTasks,
+  fetchTaskLogs, saveTaskLogs, startPollingTaskLogs
 } from './jsonbinSync.js';
 
-const userProjects = {}; // will be filled from JSONBin
 
-// --------- USER TO PROJECT MAPPING ---------
-/*const userProjects = {
-"VASSILIS PAPAGEORGIOU": "IKEA",
-  "SAVVAS SARRI": "PUBLIC",
-  "NARENDER SINGH": "IKEA",
-  "SANDEEP SINGH": "IKEA",
-  "LOVEPREET SINGH": "IKEA",
-  "RAJINDER KUMAR SABI": "IKEA",
-  "GOURAV": "IKEA",
-  "RAMANDEEP SINGH ": "IKEA",
-  "RAVINDERJIT SINGH": "IKEA",
-  "GODDY NGEYOH": "IKEA",
-  "BODYLAWSON": "IKEA",
-  "DESMOND": "IKEA",
-  "MERLIN BASSECK NOAH": "IKEA",
-  "JULIE NTOKOU": "IKEA",
-  "PARWINDER SINGH ( PIKA )": "IKEA",
-  "MBU CHRISTOPHER BATE": "IKEA",
-  "LIH ROSTENT": "IKEA",
-  "VALENTINOS MELINIOTIS ": "IKEA",
-  "ANDREAS K": "IKEA",
-  "ELENA YIALLOUROU": "IKEA",
-  "MARINA ASPROMALLI": "IKEA",
-  "TZENI DIMA": "IKEA",
-  "PAILAK TATARIAN": "IKEA",
-  "ELENA TOUMAZOU": "IKEA"
-};
-*/
-
-/*
-if (!localStorage.getItem("userProjects")) {
-  localStorage.setItem("userProjects", JSON.stringify(userProjects));
-}
-*/
-
-const userSelect = document.getElementById("userSelect");
-
+const userProjects = {};
 const userTasks = {};
-if (!localStorage.getItem("userTasks")) {
-  Object.keys(userProjects).forEach(user => {
-    userTasks[user] = [];
-  });
-  localStorage.setItem("userTasks", JSON.stringify(userTasks));
-}
-
 const taskLogs = [];
+
 let deleteMode = false;
 const selectedToDelete = new Set();
 
-// --------- LOAD FROM LOCAL STORAGE ---------
-/*
-if (localStorage.getItem("userProjects")) {
-  Object.assign(userProjects, JSON.parse(localStorage.getItem("userProjects")));
-}
-  */
-if (localStorage.getItem("userTasks")) {
-  Object.assign(userTasks, JSON.parse(localStorage.getItem("userTasks")));
-}
-if (localStorage.getItem("taskLogs")) {
-  taskLogs.push(...JSON.parse(localStorage.getItem("taskLogs")));
-}
+const userSelect = document.getElementById("userSelect");
 
-// --------- POPULATE USER DROPDOWN ---------
+// Load all data from JSONBin
+await fetchUserProjects().then(data => {
+  Object.assign(userProjects, data);
+  refreshUserDropdown();
+});
+await fetchUserTasks().then(data => Object.assign(userTasks, data));
+await fetchTaskLogs().then(data => {
+  taskLogs.push(...data);
+  renderLogTable();
+});
+
+// Start polling
+startPollingUserProjects(data => {
+  Object.assign(userProjects, data);
+  refreshUserDropdown();
+});
+startPollingUserTasks(data => {
+  Object.assign(userTasks, data);
+});
+startPollingTaskLogs(data => {
+  taskLogs.length = 0;
+  taskLogs.push(...data);
+  renderLogTable();
+});
+
+// Populate dropdown
 function refreshUserDropdown() {
   const currentValue = userSelect.value;
   userSelect.innerHTML = '<option value="">— choose user —</option>';
@@ -80,19 +51,8 @@ function refreshUserDropdown() {
   });
   userSelect.value = currentValue;
 }
-//refreshUserDropdown();
-fetchUserProjects().then(data => {
-  Object.assign(userProjects, data);
-  refreshUserDropdown();
-});
 
-startPollingUserProjects(data => {
-  Object.assign(userProjects, data);
-  refreshUserDropdown();
-});
-
-
-// --------- USER SELECTION HANDLER ---------
+// On user change
 userSelect.addEventListener("change", () => {
   const selectedUser = userSelect.value;
   const project = userProjects[selectedUser] || "---";
@@ -109,8 +69,8 @@ userSelect.addEventListener("change", () => {
   });
 });
 
-// --------- SUBMIT BUTTON ---------
-document.getElementById("submitEntry").addEventListener("click", () => {
+// Submit Entry
+document.getElementById("submitEntry").addEventListener("click", async () => {
   const user = userSelect.value;
   const task = document.getElementById("taskSelect").value;
   const statusValue = document.getElementById("statusSelect").value;
@@ -122,23 +82,22 @@ document.getElementById("submitEntry").addEventListener("click", () => {
   }
 
   const timestamp = formatTimestamp(new Date());
-const status = statusValue === "COMPLETED" ? "COMPLETED" : "NOT COMPLETED";
+  const status = statusValue === "COMPLETED" ? "COMPLETED" : "NOT COMPLETED";
 
   const entry = {
-  user,
-  project: userProjects[user],
-  task,
-  status,
-  timestamp,
-  comment: comment || ""
-};
+    user,
+    project: userProjects[user],
+    task,
+    status,
+    timestamp,
+    comment: comment || ""
+  };
 
   taskLogs.push(entry);
-  localStorage.setItem("taskLogs", JSON.stringify(taskLogs));
+  await saveTaskLogs(taskLogs);
   updateSubmittedTaskHints();
   alert("Entry submitted!");
 
-  // Reset fields
   userSelect.value = "";
   document.getElementById("projectName").textContent = "---";
   document.getElementById("taskSelect").innerHTML = '<option value="">— choose task —</option>';
@@ -146,14 +105,12 @@ const status = statusValue === "COMPLETED" ? "COMPLETED" : "NOT COMPLETED";
   document.getElementById("commentInput").value = "";
 });
 
-
-// --------- ADMIN LOGIN ---------
+// Admin Login
 const adminCode = "332133";
 document.getElementById("adminLoginToggle").addEventListener("click", () => {
   const prompt = document.getElementById("adminPrompt");
   prompt.style.display = prompt.style.display === "block" ? "none" : "block";
 });
-
 document.getElementById("adminSubmit").addEventListener("click", () => {
   const enteredCode = document.getElementById("adminCode").value;
   if (enteredCode === adminCode) {
@@ -169,7 +126,7 @@ document.getElementById("adminSubmit").addEventListener("click", () => {
   }
 });
 
-// --------- ADMIN: ASSIGN TASKS ---------
+// Admin Task Editor
 function renderAdminTaskEditor() {
   const container = document.getElementById("adminTaskContainer");
   container.innerHTML = "";
@@ -198,14 +155,10 @@ function renderAdminTaskEditor() {
     const currentValue = userTasks[user] ? userTasks[user].join(", ") : "";
     input.value = currentValue;
 
-    const raw = currentValue.split(",").map(t => t.trim());
-    userTasks[user] = raw.filter(t => t.length > 0);
-    localStorage.setItem("userTasks", JSON.stringify(userTasks));
-
-    input.addEventListener("input", () => {
+    input.addEventListener("input", async () => {
       const updated = input.value.split(",").map(t => t.trim());
       userTasks[user] = updated.filter(t => t.length > 0);
-      localStorage.setItem("userTasks", JSON.stringify(userTasks));
+      await saveUserTasks(userTasks);
       updateSubmittedTaskHints();
     });
 
@@ -217,7 +170,7 @@ function renderAdminTaskEditor() {
   updateSubmittedTaskHints();
 }
 
-// --------- ADMIN: SHOW ✅ FOR SUBMITTED TASKS ---------
+// Hints for submitted tasks
 function updateSubmittedTaskHints() {
   const rows = document.querySelectorAll(".admin-task-row");
 
@@ -244,8 +197,8 @@ function updateSubmittedTaskHints() {
   });
 }
 
-// --------- ADMIN: ADD USER ---------
-document.getElementById("addUserBtn").addEventListener("click", () => {
+// Admin Add User
+document.getElementById("addUserBtn").addEventListener("click", async () => {
   const name = document.getElementById("newUserName").value.trim().toUpperCase();
   const project = document.getElementById("newUserProject").value.trim().toUpperCase();
 
@@ -262,8 +215,8 @@ document.getElementById("addUserBtn").addEventListener("click", () => {
   userProjects[name] = project;
   userTasks[name] = [];
 
-  localStorage.setItem("userProjects", JSON.stringify(userProjects));
-  localStorage.setItem("userTasks", JSON.stringify(userTasks));
+  await saveUserProjects(userProjects);
+  await saveUserTasks(userTasks);
 
   renderAdminTaskEditor();
   refreshUserDropdown();
@@ -273,7 +226,7 @@ document.getElementById("addUserBtn").addEventListener("click", () => {
   alert("User added!");
 });
 
-// --------- ADMIN: DELETE USERS MODE ---------
+// Admin Delete Users
 document.getElementById("toggleDeleteMode").addEventListener("click", () => {
   deleteMode = !deleteMode;
   document.getElementById("deleteControls").style.display = deleteMode ? "block" : "none";
@@ -281,7 +234,7 @@ document.getElementById("toggleDeleteMode").addEventListener("click", () => {
   renderAdminTaskEditor();
 });
 
-document.getElementById("confirmDelete").addEventListener("click", () => {
+document.getElementById("confirmDelete").addEventListener("click", async () => {
   if (selectedToDelete.size === 0) {
     alert("Please select at least one user to delete.");
     return;
@@ -298,9 +251,9 @@ document.getElementById("confirmDelete").addEventListener("click", () => {
     }
   });
 
-  localStorage.setItem("userProjects", JSON.stringify(userProjects));
-  localStorage.setItem("userTasks", JSON.stringify(userTasks));
-  localStorage.setItem("taskLogs", JSON.stringify(taskLogs));
+  await saveUserProjects(userProjects);
+  await saveUserTasks(userTasks);
+  await saveTaskLogs(taskLogs);
 
   selectedToDelete.clear();
   deleteMode = false;
@@ -310,7 +263,7 @@ document.getElementById("confirmDelete").addEventListener("click", () => {
   renderLogTable();
 });
 
-// --------- ADMIN: VIEW TASK LOGS ---------
+// View Log Table
 function renderLogTable() {
   const tbody = document.querySelector("#logTable tbody");
   tbody.innerHTML = "";
@@ -318,7 +271,7 @@ function renderLogTable() {
   if (taskLogs.length === 0) {
     const row = document.createElement("tr");
     const cell = document.createElement("td");
-    cell.colSpan = 4;
+    cell.colSpan = 6;
     cell.textContent = "No entries submitted yet.";
     cell.style.textAlign = "center";
     row.appendChild(cell);
@@ -328,7 +281,7 @@ function renderLogTable() {
 
   taskLogs.forEach(entry => {
     const row = document.createElement("tr");
-["user", "project", "task", "status", "timestamp", "comment"].forEach(field => {
+    ["user", "project", "task", "status", "timestamp", "comment"].forEach(field => {
       const td = document.createElement("td");
       td.textContent = entry[field] || "";
       row.appendChild(td);
@@ -337,9 +290,7 @@ function renderLogTable() {
   });
 }
 
-// --------- EXPORT CSV ---------
-let fileHandle = null;
-
+// Export CSV
 document.getElementById("exportCSV").addEventListener("click", async () => {
   if (taskLogs.length === 0) {
     alert("No entries to export.");
@@ -361,18 +312,12 @@ document.getElementById("exportCSV").addEventListener("click", async () => {
     .join("\n");
 
   try {
-    if (!fileHandle) {
-      const opts = {
-        suggestedName: "task-logs.csv",
-        types: [{
-          description: "CSV file",
-          accept: { "text/csv": [".csv"] }
-        }]
-      };
-      fileHandle = await window.showSaveFilePicker(opts);
-    }
-
-    const writable = await fileHandle.createWritable();
+    const opts = {
+      suggestedName: "task-logs.csv",
+      types: [{ description: "CSV file", accept: { "text/csv": [".csv"] } }]
+    };
+    const handle = await window.showSaveFilePicker(opts);
+    const writable = await handle.createWritable();
     await writable.write(csvContent);
     await writable.close();
 
@@ -383,20 +328,18 @@ document.getElementById("exportCSV").addEventListener("click", async () => {
   }
 });
 
-
-
-// --------- CLEAR DATA BANK ---------
-document.getElementById("clearDataBank").addEventListener("click", () => {
+// Clear Task Logs
+document.getElementById("clearDataBank").addEventListener("click", async () => {
   const confirmClear = confirm("Are you sure you want to clear all submitted entries?");
   if (!confirmClear) return;
 
   taskLogs.length = 0;
-  localStorage.removeItem("taskLogs");
+  await saveTaskLogs(taskLogs);
   renderLogTable();
   updateSubmittedTaskHints();
 });
 
-// --------- ADMIN: BACK TO USER TAB ---------
+// Back to User Tab
 document.getElementById("backToUserTab").addEventListener("click", () => {
   document.getElementById("tab1").style.display = "block";
   document.getElementById("tab2").style.display = "none";
