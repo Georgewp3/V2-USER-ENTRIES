@@ -1,5 +1,13 @@
+import {
+  fetchUserProjects,
+  saveUserProjects,
+  startPollingUserProjects
+} from './jsonbinSync.js';
+
+const userProjects = {}; // will be filled from JSONBin
+
 // --------- USER TO PROJECT MAPPING ---------
-const userProjects = {
+/*const userProjects = {
 "VASSILIS PAPAGEORGIOU": "IKEA",
   "SAVVAS SARRI": "PUBLIC",
   "NARENDER SINGH": "IKEA",
@@ -25,10 +33,13 @@ const userProjects = {
   "PAILAK TATARIAN": "IKEA",
   "ELENA TOUMAZOU": "IKEA"
 };
+*/
 
+/*
 if (!localStorage.getItem("userProjects")) {
   localStorage.setItem("userProjects", JSON.stringify(userProjects));
 }
+*/
 
 const userSelect = document.getElementById("userSelect");
 
@@ -45,9 +56,11 @@ let deleteMode = false;
 const selectedToDelete = new Set();
 
 // --------- LOAD FROM LOCAL STORAGE ---------
+/*
 if (localStorage.getItem("userProjects")) {
   Object.assign(userProjects, JSON.parse(localStorage.getItem("userProjects")));
 }
+  */
 if (localStorage.getItem("userTasks")) {
   Object.assign(userTasks, JSON.parse(localStorage.getItem("userTasks")));
 }
@@ -67,7 +80,17 @@ function refreshUserDropdown() {
   });
   userSelect.value = currentValue;
 }
-refreshUserDropdown();
+//refreshUserDropdown();
+fetchUserProjects().then(data => {
+  Object.assign(userProjects, data);
+  refreshUserDropdown();
+});
+
+startPollingUserProjects(data => {
+  Object.assign(userProjects, data);
+  refreshUserDropdown();
+});
+
 
 // --------- USER SELECTION HANDLER ---------
 userSelect.addEventListener("change", () => {
